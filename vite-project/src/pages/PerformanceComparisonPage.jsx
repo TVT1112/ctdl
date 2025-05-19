@@ -30,23 +30,22 @@ const PerformanceComparisonPage = () => {
       // ======== MẢNG ========
       const startArray = Date.now();
       const sorted = [...data].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-      sorted.forEach((item) => {
-        sorted.find((contact) => contact.name === item.name); // thao tác lặp tìm để sinh thời gian
-      });
+      // Đo thời gian sắp xếp, không bao gồm thao tác tìm kiếm không cần thiết
       const endArray = Date.now();
       setArrayTime(((endArray - startArray) / 1000).toFixed(4));
       setArrayData(sorted);
 
-      // ======== TÌM KIẾM ========
+      // ======== TÌM KIẾM (Lặp nhiều lần để đo rõ hơn) ========
       const target = data[Math.floor(Math.random() * data.length)];
+      const numSearches = 10000; // Tăng số lần lặp
 
       const startTreeSearch = Date.now();
-      tree.search(target.name);
+      for (let i = 0; i < numSearches; i++) tree.search(target.name);
       const endTreeSearch = Date.now();
       setTreeSearchTime(((endTreeSearch - startTreeSearch) / 1000).toFixed(4));
 
       const startArraySearch = Date.now();
-      sorted.find((c) => c.name === target.name);
+      for (let i = 0; i < numSearches; i++) sorted.find((c) => c.name === target.name);
       const endArraySearch = Date.now();
       setArraySearchTime(((endArraySearch - startArraySearch) / 1000).toFixed(4));
 
@@ -54,14 +53,21 @@ const PerformanceComparisonPage = () => {
       const treeForDelete = new Tree234();
       data.forEach((c) => treeForDelete.insert(c.name, c.phone));
       const startTreeDelete = Date.now();
-      treeForDelete.delete(target.name); // đảm bảo Tree234 có phương thức delete
+      treeForDelete.delete(target.name);
       const endTreeDelete = Date.now();
+      console.log("Thời gian xóa Cây (trước toFixed):", (endTreeDelete - startTreeDelete) / 1000); // <--- THÊM Ở ĐÂY
       setTreeDeleteTime(((endTreeDelete - startTreeDelete) / 1000).toFixed(4));
 
       const startArrayDelete = Date.now();
-      const filtered = sorted.filter((c) => c.name !== target.name);
+      let tempArray = [...sorted];
+      const startIndexToDelete = tempArray.findIndex(c => c.name === target.name);
+      if (startIndexToDelete !== -1) {
+        tempArray.splice(startIndexToDelete, 1);
+      }
       const endArrayDelete = Date.now();
+      console.log("Thời gian xóa Mảng (trước toFixed):", (endArrayDelete - startArrayDelete) / 1000); // <--- THÊM Ở ĐÂY
       setArrayDeleteTime(((endArrayDelete - startArrayDelete) / 1000).toFixed(4));
+
 
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu:", error);
@@ -76,7 +82,9 @@ const PerformanceComparisonPage = () => {
     <div className="p-6 w-full">
       <Card className="w-full p-6 bg-white shadow-lg rounded-2xl">
         <CardContent>
-          <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">So sánh hiệu suất giữa Cây 2-3-4 và Mảng</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">
+            So sánh hiệu suất giữa Cây 2-3-4 và Mảng
+          </h2>
           <Performancestats
             data={treeData}
             treeTime={treeTime}

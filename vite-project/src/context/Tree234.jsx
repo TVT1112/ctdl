@@ -33,7 +33,6 @@ class Tree234 {
     return this._search(node.children[node.keys.length], name);
   }
 
-  
   insert(name, phone) {
     const newKey = { name, phone };
     let root = this.root;
@@ -46,8 +45,6 @@ class Tree234 {
     }
 
     this.insertNonFull(this.root, newKey);
-
-    // Lưu trạng thái sau mỗi lần thêm
     this.steps.push(this.cloneTree(this.root));
   }
 
@@ -76,10 +73,7 @@ class Tree234 {
     const child = parent.children[index];
     const newNode = new TreeNode234();
 
-    // Đưa phần tử giữa lên parent
     parent.keys.splice(index, 0, child.keys[1]);
-
-    // Chia child thành hai phần
     newNode.keys.push(child.keys[2]);
     child.keys.splice(1, 2);
 
@@ -96,7 +90,7 @@ class Tree234 {
       if (node.children[i]) {
         this.inorder(node.children[i], result);
       }
-       result.push(node.keys[i]);
+      result.push(node.keys[i]);
     }
     if (node.children[node.keys.length]) {
       this.inorder(node.children[node.keys.length], result);
@@ -107,12 +101,10 @@ class Tree234 {
   delete(name) {
     this._delete(this.root, name);
   
-    // Sau khi xóa, nếu root không có key và có child thì set lại root
     if (this.root.keys.length === 0 && this.root.children.length > 0) {
       this.root = this.root.children[0];
     }
   
-    // Lưu bước sau khi xóa
     this.steps.push(this.cloneTree(this.root));
   }
 
@@ -122,18 +114,14 @@ class Tree234 {
     const idx = node.keys.findIndex(k => k.name === name);
   
     if (idx !== -1) {
-      // 1. Key nằm trong node hiện tại
       if (node.isLeaf()) {
-        // 1.1 Node là lá => xóa trực tiếp
         node.keys.splice(idx, 1);
       } else {
-        // 1.2 Node có con => thay bằng successor
         let successor = this._getSuccessor(node.children[idx + 1]);
         node.keys[idx] = successor;
         this._delete(node.children[idx + 1], successor.name);
       }
     } else {
-      // 2. Key không nằm trong node hiện tại => đệ quy xuống
       let i = 0;
       while (i < node.keys.length && name > node.keys[i].name) i++;
   
@@ -144,24 +132,24 @@ class Tree234 {
   }
   
   _getSuccessor(node) {
-    // Đi tới con trái nhất
     while (!node.isLeaf()) {
       node = node.children[0];
     }
     return node.keys[0];
   }
   
-
   getSteps() {
     return this.steps;
   }
 
   cloneTree(node) {
     if (!node) return null;
-    return {
-      keys: node.keys.map(k => ({ name: k.name, phone: k.phone })),
-      children: node.children.map(child => this.cloneTree(child)),
-    };
+    
+    const newNode = new TreeNode234();
+    newNode.keys = node.keys.map(k => ({ name: k.name, phone: k.phone }));
+    newNode.children = node.children.map(child => this.cloneTree(child));
+    
+    return newNode;
   }
 }
 

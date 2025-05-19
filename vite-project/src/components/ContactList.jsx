@@ -21,7 +21,6 @@ const ContactList = () => {
       const newTree = new Tree234();
       data.forEach((contact) => newTree.insert(contact.name, contact.phone));
       setTree(newTree);
-      console.log(newTree)
       setContacts(newTree.inorder(newTree.root));
 
       const sortedArray = [...data].sort((a, b) => a.name.localeCompare(b.name));
@@ -34,26 +33,16 @@ const ContactList = () => {
   const addContact = async () => {
     if (!name || !phone) return;
     const newContact = { name, phone };
-  
+
     const newTree = new Tree234();
-    newTree.root = JSON.parse(JSON.stringify(tree.root));
+    newTree.root = tree.cloneTree(tree.root);
     newTree.steps = [...tree.steps];
     newTree.insert(newContact.name, newContact.phone);
-  
+
     setTree(newTree);
     setContacts(newTree.inorder(newTree.root));
     setName("");
     setPhone("");
-  
-    // Nếu vẫn muốn thêm lên server
-    /*
-    try {
-      await axios.post("http://localhost:4000/api/contactlist/add", newContact);
-      window.location.reload(); // Thêm dòng này để load lại trang sau khi thêm xong
-    } catch (error) {
-      console.error("Lỗi khi thêm liên lạc:", error);
-    }
-    */
   };
 
   const searchInTree = () => {
@@ -65,12 +54,11 @@ const ContactList = () => {
       return;
     }
   
-    // Lấy thêm _id từ MongoDB (dùng contactArray)
     const fullResult = contactArray.find(
       (c) => c.name === result.name && c.phone === result.phone
     );
   
-    setSearchResult(fullResult || result); // Ưu tiên bản có _id
+    setSearchResult(fullResult || result);
   };
 
   const handleDeleteFromTree = async () => {
@@ -84,19 +72,16 @@ const ContactList = () => {
   
       const result = await response.json();
       if (result.success) {
-        // Cập nhật lại contactArray (xóa khỏi mảng)
         const updatedContacts = contactArray.filter(
           (c) => c._id !== searchResult._id
         );
         setContactArray(updatedContacts);
   
-        // Dựng lại cây mới từ contactArray đã cập nhật
         const newTree = new Tree234();
         updatedContacts.forEach((c) => newTree.insert(c.name, c.phone));
         setTree(newTree);
         setContacts(newTree.inorder(newTree.root));
   
-        // Clear giao diện
         setSearchResult(null);
         setSearchName("");
         alert("Đã xóa liên hệ khỏi hệ thống.");
@@ -109,38 +94,31 @@ const ContactList = () => {
     }
   };
   
-  
-
   useEffect(() => {
     fetchContacts();
-   
   }, []);
 
   return (
     <div className="p-6 w-full">
-
-      {/* Danh sách liên hệ */}
       <div className="mt-8 bg-gray-50 p-4 rounded-xl shadow-inner">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700 text-center">Danh sách liên lạc (Cây 2-3-4)</h3>
-            <div className="max-h-80 overflow-y-auto">
-              {contacts.map((contact, index) => (
-                <Card key={index} className="mb-2 p-3 shadow-sm rounded-lg bg-white">
-                  <CardContent>
-                    <p className="font-semibold text-base">{contact.name}</p>
-                    <p className="text-gray-600">{contact.phone}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 text-center">Danh sách liên lạc (Cây 2-3-4)</h3>
+        <div className="max-h-80 overflow-y-auto">
+          {contacts.map((contact, index) => (
+            <Card key={index} className="mb-2 p-3 shadow-sm rounded-lg bg-white">
+              <CardContent>
+                <p className="font-semibold text-base">{contact.name}</p>
+                <p className="text-gray-600">{contact.phone}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       <Card className="w-full p-6 bg-white shadow-lg rounded-2xl">
         <CardContent>
           <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">Quản lý danh bạ (Cây 2-3-4)</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Form thêm */}
             <div className="bg-blue-50 p-4 rounded-xl shadow-sm">
               <h3 className="text-lg font-semibold mb-3 text-blue-600">Thêm liên hệ</h3>
               <Input
@@ -163,7 +141,6 @@ const ContactList = () => {
               </Button>
             </div>
 
-            {/* Tìm kiếm */}
             <div className="bg-green-50 p-4 rounded-xl shadow-sm">
               <h3 className="text-lg font-semibold mb-3 text-green-600">Tìm kiếm trong cây</h3>
               <Input
@@ -195,13 +172,9 @@ const ContactList = () => {
               ) : searchName ? (
                 <p className="text-center mt-4 text-red-500 font-medium">Không tìm thấy liên hệ.</p>
               ) : null}
-
             </div>
           </div>
 
-          
-
-          {/* Visualization */}
           <div className="mt-8 bg-yellow-50 p-4 rounded-xl shadow-inner">
             <h3 className="text-lg font-semibold mb-4 text-yellow-700 text-center">Cây 2-3-4 Visualization</h3>
             <TreeVisualization steps={tree.getSteps()} />
